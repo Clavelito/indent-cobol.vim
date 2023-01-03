@@ -3,8 +3,8 @@ vim9script noclear
 # Vim indent file
 # Language:         Cobol
 # Author:           Clavelito <maromomo@hotmail.com>
-# Last Change:      Sat, 24 Dec 2022 18:33:17 +0900
-# Version:          0.1
+# Last Change:      Wed, 04 Jan 2023 04:36:30 +0900
+# Version:          0.2
 # License:          http://www.apache.org/licenses/LICENSE-2.0
 #
 # Description:      The current line is often indented at line breaks.
@@ -47,13 +47,17 @@ def g:GetCobolInd(): number
   endif
   var lnum = prevnonblank(v:lnum - 1)
   var line = getline(lnum)
-  while lnum > 0 && (Comment(line) || Direct(line) || Debug(line))
+  var snum = lnum
+  while lnum > 0 && (Comment(line) && indent(lnum) == c_ind || Direct(line) || Debug(line))
+    if snum == lnum
+      setlocal indentkeys+=<Space>
+    endif
     lnum = prevnonblank(lnum - 1)
     line = getline(lnum)
   endwhile
   var pnum = prevnonblank(lnum - 1)
   var pline = getline(pnum)
-  while pnum > 0 && (Comment(pline) || Direct(pline) || Debug(pline))
+  while pnum > 0 && (Comment(pline) && indent(pnum) == c_ind || Direct(pline) || Debug(pline))
     pnum = prevnonblank(pnum - 1)
     pline = getline(pnum)
   endwhile
@@ -372,7 +376,7 @@ def Muth(line: string): bool
 enddef
 
 def Muth2(line: string): bool
-  return line =~ '^[ ]\{' .. b_ind .. ',}\%([-+*/=]\|[*][*]\)'
+  return line =~ '^[ ]\{' .. b_ind .. ',}\%([-+*/=]\|[*][*]\)' && line !~? '\sEND-COMPUTE\>' && !Dot(line)
 enddef
 
 def Not(line: string): bool
